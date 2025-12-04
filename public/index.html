@@ -121,55 +121,67 @@
     <button id="send-btn">Enviar</button>
   </div>
 
-  <script>
-    const chat = document.getElementById('chat');
-    const input = document.getElementById('msg-input');
-    const sendBtn = document.getElementById('send-btn');
+    <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const chat = document.getElementById('chat');
+      const input = document.getElementById('msg-input');
+      const sendBtn = document.getElementById('send-btn');
 
-    function addMessage(text, type) {
-      const div = document.createElement('div');
-      div.className = 'msg ' + type;
-      div.textContent = text;
-      chat.appendChild(div);
-      chat.scrollTop = chat.scrollHeight;
-    }
+      function addMessage(text, type) {
+        const div = document.createElement('div');
+        div.className = 'msg ' + type;
+        div.textContent = text;
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
+      }
 
-    async function sendMessage() {
-      const text = input.value.trim();
-      if (!text) return;
-      addMessage(text, 'user');
-      input.value = '';
-      sendBtn.disabled = true;
+      async function sendMessage() {
+        const text = input.value.trim();
+        if (!text) return;
+        addMessage(text, 'user');
+        input.value = '';
+        sendBtn.disabled = true;
 
-      try {
-        const res = await fetch('/api/simular', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mensajeUsuario: text })
-        });
-        const data = await res.json();
-        if (data.error) {
-          addMessage('Error en el simulador: ' + data.error, 'system');
-        } else {
-          addMessage(data.respuestaIA, 'ai');
+        try {
+          const res = await fetch('/api/simular', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mensajeUsuario: text })
+          });
+          const data = await res.json();
+          if (data.error) {
+            addMessage('Error en el simulador: ' + data.error, 'system');
+          } else {
+            addMessage(data.respuestaIA, 'ai');
+          }
+        } catch (err) {
+          console.error(err);
+          addMessage('Ocurrió un error al conectar con la IA.', 'system');
+        } finally {
+          sendBtn.disabled = false;
+          input.focus();
         }
-      } catch (err) {
-        console.error(err);
-        addMessage('Ocurrió un error al conectar con la IA.', 'system');
-      } finally {
-        sendBtn.disabled = false;
-        input.focus();
       }
-    }
 
-    sendBtn.addEventListener('click', sendMessage);
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
+      sendBtn.addEventListener('click', sendMessage);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      // Mensajes iniciales del escenario
+      addMessage(
+        'Cliente: “Oye, llevo 20 minutos en fila, siempre es lo mismo en esta tienda. Además la última vez me cobraron mal un producto y nadie me resolvió. ¿Qué vas a hacer tú diferente como gerente?”',
+        'ai'
+      );
+      addMessage(
+        'Responde como si fueras el Gerente de Punto de Venta. Puedes hacer preguntas, ofrecer soluciones o explicar el proceso.',
+        'system'
+      );
     });
+  </script>
+</body>
+</html>
 
-    // Mensaje inicial de escenario
-    addMessage(
-      'Cliente: “Oye, llevo 20 minutos en fila, siempre es lo mismo
